@@ -1,5 +1,6 @@
 @import 'header.css';
 @import 'div.offcanvas.css';
+@import 'section#random-movie.css';
 
 .truncate {
     overflow: hidden;
