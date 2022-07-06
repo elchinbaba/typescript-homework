@@ -23,16 +23,16 @@ header > .navbar > .container {
     text-decoration: none;
 }
 
-.pointer {
-    cursor: pointer;
-}
-
 .container > .navbar-toggler {
     width: 40px;
     height: 25px;
     background-color: #202026;
     border: 1px solid #919297;
     border-radius: 3px;
+}
+
+.navbar-toggler:hover {
+    border-color: white;
 }
 
 .navbar-toggler > .navbar-toggler-icon > i {
