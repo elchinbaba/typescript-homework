@@ -1,6 +1,25 @@
+@import 'div.offcanvas.css';
+
 .truncate {
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+}
+
+.btn-check {
+    display: none;
+}
+
+.btn-check:checked + label {
+    background-color: #343A40;
+    color: white;
+}
+
+#top-rated {
+    border-left: 0 solid black;
+}
+
+#search {
+    width: calc(100% - 120px);
 }
