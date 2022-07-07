@@ -1,0 +1,39 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+header {
+    width: 100%;
+    background-color: #202026;
+    padding: 20px 100px;
+}
+
+header > .navbar > .container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.container > .navbar-brand {
+    color: white;
+    text-decoration: none;
+}
+
+.container > .navbar-toggler {
+    width: 40px;
+    height: 25px;
+    background-color: #202026;
+    border: 1px solid #919297;
+    border-radius: 3px;
+}
+
+.navbar-toggler:hover {
+    border-color: white;
+}
+
+.navbar-toggler > .navbar-toggler-icon > i {
+    color: #919297;
+}
