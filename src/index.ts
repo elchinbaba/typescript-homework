@@ -1,72 +1,135 @@
-// import axios from "axios";
-
-// const config = {
-//   headers: {
-//     // "Access-Control-Allow-Origin": "*",
-//     "Content-Type": "text/plain",
-//   },
-// };
-// const instance = axios.create({
-//   baseURL: "https://api.themoviedb.org/3",
-//   headers: config.headers
-// });
-
-// instance.get('search/movie?api_key=fd565cd2fac1a728709a40658316eb32&query=fight')
-//     .then(res => console.log(res));
-
-import { createCard } from './view/createCard';
 import { API_KEY } from './common/values';
 
 import { IParams } from './common/interface';
 
-import { reloadRequest } from './helpers/helpers';
+import { reloadRequest, loadPage } from './helpers/helpers';
+
+import { createCards, chooseRandomMovie, createFavorites } from './view/views';
 
 const params: IParams = {
     api_key: API_KEY,
-    api_route: '',
+    api_route: 'movie/popular',
     page: 1,
     query: ''
 }
 
-let data: any;
+let cards: any;
+
+let favoriteIds: any = JSON.parse(<any>localStorage.getItem('favoriteIds'));
 
 const addEventListeners = (): void => {
     {
-        const popularClickHandler = (): void => {
-            params.api_route = 'movie/popular';
-    
-            data = reloadRequest(params);
+        const popularClickHandler = async (): Promise<void> => {
+            if (params.api_route !== 'movie/popular') {
+                params.page = 1;
+                params.api_route = 'movie/popular';
+
+                cards = await loadPage(params);
+            }
         }
         document.getElementById('popular')?.addEventListener('click', popularClickHandler);
     
-        const upcomingClickHandler = (): void => {
-            params.api_route = 'movie/upcoming';
-    
-            data = reloadRequest(params);
+        const upcomingClickHandler = async (): Promise<void> => {
+            if (params.api_route !== 'movie/upcoming') {
+                params.page = 1;
+                params.api_route = 'movie/upcoming';
+
+                cards = await loadPage(params);
+            }
         }
         document.getElementById('upcoming')?.addEventListener('click', upcomingClickHandler);
     
-        const topRatedClickHandler = (): void => {
-            params.api_route = 'movie/top_rated';
-    
-            data = reloadRequest(params);
+        const topRatedClickHandler = async (): Promise<void> => {
+            if (params.api_route !== 'movie/top_rated') {
+                params.page = 1;
+                params.api_route = 'movie/top_rated';
+
+                cards = await loadPage(params);
+            }
         }
         document.getElementById('top_rated')?.addEventListener('click', topRatedClickHandler);
     
-        const searchClickHandler = (): void => {
-            params.api_route = 'search/movie';
-            params.query = (<HTMLInputElement>document.getElementById('search')).value;
-    
-            data = reloadRequest(params);
+        const searchClickHandler = async (): Promise<void> => {
+            const query: string = (<HTMLInputElement>document.getElementById('search')).value;
+            if ( params.api_route !== 'search/movie' || params.query !== query) {
+                params.page = 1;
+                params.api_route = 'search/movie';
+                params.query = query;
+
+                cards = await loadPage(params);
+            }
         }
         document.getElementById('submit')?.addEventListener('click', searchClickHandler);
 
-        const loadMoreClickHandler = (): void => {
+        const loadMoreClickHandler = async (): Promise<void> => {
             params.page += 1;
     
-            data = reloadRequest(params);
+            const moreCards: any = await reloadRequest(params);
+            for (let i in moreCards) {
+                if (favoriteIds && favoriteIds.includes(cards[i].id)) {
+                    moreCards[i].isFavorite = true;
+                }
+                else {
+                    moreCards[i].isFavorite = false;
+                }
+            }
+            cards = cards.concat(moreCards);
+
+            createCards(moreCards, false);
         }
         document.getElementById('load-more')?.addEventListener('click', loadMoreClickHandler);
+    }
+
+    {
+        const inputChangeHandler = (): void => {
+            const element: any = <any>document.getElementById('submit');
+
+            if ((<HTMLInputElement>document.getElementById('search')).value === '') {
+                element.disabled = true;
+            }
+            else if (element.disabled === true) {
+                element.disabled = false;
+            }
+        }
+        document.getElementById('search')?.addEventListener('input', inputChangeHandler);
+    }
+
+    {
+        const navbarClickHandler = (): void => {
+            favoriteIds = JSON.parse(<any>localStorage.getItem('favoriteIds'));
+            createFavorites(favoriteIds);
+        }
+        document.querySelector('button.navbar-toggler')?.addEventListener('click', navbarClickHandler);
+
+        const favoritesCloseClickHandler = (): void => {
+            favoriteIds = JSON.parse(<any>localStorage.getItem('favoriteIds'));
+
+            for (let i in cards) {
+                if (favoriteIds && favoriteIds.includes(cards[i].id)) {
+                    cards[i].isFavorite = true;
+                }
+                else {
+                    cards[i].isFavorite = false;
+                }
+            }
+
+            createCards(cards);
+        }
+        document.querySelector('#offcanvasRight > .offcanvas-header > button')?.addEventListener('click', favoritesCloseClickHandler);
+
+        let mouseOut = false;
+        let bodyClick = false;
+        document.getElementById('offcanvasRight')?.addEventListener('mouseout', (): void => { mouseOut = true; });
+        document.getElementById('offcanvasRight')?.addEventListener('mouseenter', (): void => { mouseOut = false; });
+        document.body.addEventListener('click', (): void => { bodyClick = true; });
+        document.getElementById('offcanvasRight')?.addEventListener('click', (): void => { bodyClick = false; });
+        document.body.addEventListener('click', (): void => {
+            // console.log(mouseOut, bodyClick);
+            if (mouseOut && bodyClick) favoritesCloseClickHandler();
+
+            mouseOut = false;
+            bodyClick = false;
+        });
     }
 }
 
@@ -75,5 +138,9 @@ export async function render(): Promise<void> {
 
     addEventListeners();
 
-    // document.getElementById('film-container')?.append(createCard());
+    (<any>document.getElementById('submit')).disabled = true;
+
+    cards = await loadPage(params);
+
+    chooseRandomMovie(cards);
 }
